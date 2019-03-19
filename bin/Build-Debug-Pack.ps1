@@ -9,7 +9,7 @@ symbol one in the nupkgs directory. This script uses either nuget or dotnet to g
 the final outputs.
 
 .EXAMPLE
-Build-Debug-Pack.ps1 [-msbuild] [-source .\Backload.csproj] [-version ..\..\VERSION]
+Build-Debug-Pack.ps1 -msbuild -source .\Backload.csproj -version ..\..\VERSION
 
 .NOTES
 -msbuild is to instruct the script to use the nuget command. 
