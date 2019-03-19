@@ -1,3 +1,26 @@
+<#
+
+.SYNOPSIS
+This is used to build nuget packages from a project.
+
+.DESCRIPTION
+The script itself will build the project and then generate the nuget package and its corresponding 
+symbol one in the nupkgs directory. This script uses either nuget or dotnet to generate 
+the final outputs.
+
+.EXAMPLE
+Build-Debug-Pack.ps1 [-msbuild] [-source .\Backload.csproj] [-version ..\..\VERSION]
+
+.NOTES
+-msbuild is to instruct the script to use the nuget command. 
+-source is to specify the target project file. In case, it is not specified, the script will try to find it out.
+-version is to specify the version file containing the latest version number. In the case that we use -msbuild, it is used.
+
+.LINK
+http://polpware.com
+
+#>
+
 param (
     [string]$source = "",
     [switch]$msbuild = $false,
