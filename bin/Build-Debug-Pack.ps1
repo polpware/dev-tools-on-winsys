@@ -24,7 +24,7 @@ http://polpware.com
 param (
     [string]$source = "",
     [switch]$msbuild = $false,
-    [string]$version = "",
+    [string]$version = "VERSION",
     [switch]$rebuild = $true    
 )
 
