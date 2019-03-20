@@ -24,7 +24,8 @@ http://polpware.com
 param (
     [string]$source = "",
     [switch]$msbuild = $false,
-    [string]$version = ""
+    [string]$version = "",
+    [switch]$rebuild = $true    
 )
 
 Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Build debug pack"
@@ -53,18 +54,39 @@ if ($proj) {
     if ($msbuild) {
         Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Start to use nuget to build and pack ..."
         if ($verNumber) {
-            Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Ovrriding the version number with $verNumber"            
-            & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols -Version $verNumber
+            if ($rebuild) {
+                Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Rebuild the project and override the version number with $verNumber"            
+                & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols -Version $verNumber
+            }
+            else
+            {
+                Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Just Override the version number with $verNumber"            
+                & nuget pack "$proj" -OutputDirectory nupkgs -Symbols -Version $verNumber
+            }
         }
         else
         {
-            & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols
+            if ($rebuild) {
+                Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Rebuild the project and then pack"                            
+                & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols
+            }
+            else
+            {
+                Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Just rebuild the project"                                            
+                & nuget pack "$proj" -OutputDirectory nupkgs -Symbols                
+            }
         }
     }
     else
     {
         Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Start to use dotnet to build and pack ..."
-        & dotnet pack "$proj" --output nupkgs --include-source --include-symbols 
+        if ($rebuild) {
+            & dotnet pack "$proj" --output nupkgs --include-source --include-symbols
+        }
+        else
+        {
+            & dotnet pack "$proj" --no-build --output nupkgs --include-source --include-symbols            
+        }
     }
 }
 
