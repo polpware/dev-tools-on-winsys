@@ -9,12 +9,13 @@ symbol one in the nupkgs directory. This script uses either nuget or dotnet to g
 the final outputs.
 
 .EXAMPLE
-Build-Debug-Pack.ps1 -msbuild -source .\Backload.csproj -version ..\..\VERSION
+Build-Debug-Pack.ps1 -msbuild -source .\Backload.csproj -version ..\..\VERSION -useVersionNumber 2.2.0
 
 .NOTES
 -msbuild is to instruct the script to use the nuget command. 
 -source is to specify the target project file. In case, it is not specified, the script will try to find it out.
 -version is to specify the version file containing the latest version number. In the case that we use -msbuild, it is used.
+-use-version-number is to override the version used for building package
 
 .LINK
 http://polpware.com
@@ -25,17 +26,24 @@ param (
     [string]$source = "",
     [switch]$msbuild = $false,
     [string]$version = "VERSION",
-    [switch]$rebuild = $true    
+    [switch]$rebuild = $true,
+    [string]$useVersionNumber = ""
 )
 
 Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Build debug pack"
 
 $loc = Get-Location
 
-If (Test-Path -Path "$loc\$version" -PathType Leaf) {
-    Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Read VERSION"
-    $verNumber = Get-Content -Path "$loc\$version"
-    Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "New version is $verNumber"
+If ($useVersionNumber) {
+    $verNumber = $useVersionNumber
+}
+else
+{
+    If (Test-Path -Path "$loc\$version" -PathType Leaf) {
+        Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Read VERSION"
+        $verNumber = Get-Content -Path "$loc\$version"
+        Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "New version is $verNumber"
+    }
 }
 
 if ($source) {
