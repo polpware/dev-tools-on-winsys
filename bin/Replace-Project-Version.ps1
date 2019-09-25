@@ -45,7 +45,7 @@ Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Project file is $pr
 
 if ($proj) {
 
-    If (Test-Path -Path "$loc\VERSION" -PathType Leaf) {
+    If (Test-Path -Path "$loc\$version" -PathType Leaf) {
         Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Read VERSION"
         $verNumber = Get-Content -Path "$loc\$version"
         Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "New version is $verNumber"
