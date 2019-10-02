@@ -37,71 +37,88 @@ param (
 
 Import-Module -Name "$PSScriptRoot\PolpIOModule" -Verbose
 
-Write-In-Color "Build debug pack"
+WriteInColor "Build debug pack now ..."
 
 $loc = Get-Location
 
 If ($useVersionNumber) {
     $verNumber = $useVersionNumber
+    WriteInColor "Using the given version number: $useVersionNumber"    
 }
 else
 {
     If (Test-Path -Path "$loc\$version" -PathType Leaf) {
-        Write-In-Color "Read VERSION"
+        WriteInColor "Read file: VERSION"
         $verNumber = Get-Content -Path "$loc\$version"
-        Write-In-Color Green "New version is $verNumber"
+        WriteInColor "New version is $verNumber"
     }
 }
 
 if ($source) {
-    Write-In-Color "Project is provided"            
     $proj = "$loc\$source"
+    WriteInColor "Use the given project file: $proj"                    
 }
 else { 
-    Write-In-Color "Finding out the project file"        
     $proj = Get-ChildItem -Path "$loc\*" -Include *.csproj
+    WriteInColor "Use the found project: $proj"            
 }
-
-Write-In-Color "Project file is $proj"
 
 if ($proj) {
 
     if ($msbuild) {
-        Write-In-Color "Start to use nuget to build and pack ..."
+        WriteInColor "Start to use nuget to build and pack ..."
         if ($verNumber) {
             if ($rebuild) {
-                Write-In-Color "Rebuild the project and override the version number with $verNumber"            
-                & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols -Version $verNumber
+                If (ConfirmContinue "Rebuild the project and override the version number with $verNumber")
+                {
+                    & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols -Version $verNumber
+                }
             }
             else
             {
-                Write-In-Color "Just Override the version number with $verNumber"            
-                & nuget pack "$proj" -OutputDirectory nupkgs -Symbols -Version $verNumber
+                if (ConfirmContinue "Just Override the version number with $verNumber")
+                {
+                    & nuget pack "$proj" -OutputDirectory nupkgs -Symbols -Version $verNumber
+                }
             }
         }
         else
         {
             if ($rebuild) {
-                Write-In-Color "Rebuild the project and then pack"                            
-                & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols
+                if (ConfirmContinue "Rebuild the project and then pack")
+                {
+                    & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols
+                }
             }
             else
             {
-                Write-In-Color "Just rebuild the project"                                            
-                & nuget pack "$proj" -OutputDirectory nupkgs -Symbols                
+                if (ConfirmContinue "Just rebuild the project")
+                {
+                    & nuget pack "$proj" -OutputDirectory nupkgs -Symbols
+                }
             }
         }
     }
     else
     {
-        Write-In-Color "Start to use dotnet to build and pack ..."
+
         if ($rebuild) {
-            & dotnet pack "$proj" --output nupkgs --include-source --include-symbols
+            If (ConfirmContinue "Start to use dotnet to build and pack")
+            {
+                & dotnet pack "$proj" --output nupkgs --include-source --include-symbols
+            }
         }
         else
         {
-            & dotnet pack "$proj" --no-build --output nupkgs --include-source --include-symbols            
+            If (ConfirmContinue "Start to use dotnet to pack (without rebuild)")
+            {
+                & dotnet pack "$proj" --no-build --output nupkgs --include-source --include-symbols
+            }
         }
     }
+}
+else
+{
+    WriteInColor "Found no project and quit"
 }
 
