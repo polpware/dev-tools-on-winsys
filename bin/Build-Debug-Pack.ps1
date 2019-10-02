@@ -9,10 +9,15 @@ symbol one in the nupkgs directory. This script uses either nuget or dotnet to g
 the final outputs.
 
 .EXAMPLE
-Build-Debug-Pack.ps1 -msbuild -rebuild:$false -source .\Backload.csproj -version ..\..\VERSION -useVersionNumber 2.2.0
+Build-Debug-Pack.ps1 for .NetCore/.AspNetCore project
+Build-Debug-Pack.ps1 -msbuild -rebuild:$false for traditional .Net Framework target project
+Build-Debug-Pack.ps1 -source .\Backload.csproj for given source project
+Build-Debug-Pack.ps1 -version ..\..\VERSION for given version file
+Build-Debug-Pack.ps1 -useVersionNumber 2.2.0 for given version number
 
 .NOTES
 -msbuild is to instruct the script to use the nuget command. 
+-rebuild is to skip building.
 -source is to specify the target project file. In case, it is not specified, the script will try to find it out.
 -version is to specify the version file containing the latest version number. In the case that we use -msbuild, it is used.
 -use-version-number is to override the version used for building package
