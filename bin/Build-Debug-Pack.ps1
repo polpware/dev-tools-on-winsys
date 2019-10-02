@@ -9,7 +9,7 @@ symbol one in the nupkgs directory. This script uses either nuget or dotnet to g
 the final outputs.
 
 .EXAMPLE
-Build-Debug-Pack.ps1 -msbuild -source .\Backload.csproj -version ..\..\VERSION -useVersionNumber 2.2.0
+Build-Debug-Pack.ps1 -msbuild -rebuild:$false -source .\Backload.csproj -version ..\..\VERSION -useVersionNumber 2.2.0
 
 .NOTES
 -msbuild is to instruct the script to use the nuget command. 
@@ -30,7 +30,9 @@ param (
     [string]$useVersionNumber = ""
 )
 
-Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Build debug pack"
+Import-Module -Name "$PSScriptRoot\PolpIOModule" -Verbose
+
+Write-In-Color "Build debug pack"
 
 $loc = Get-Location
 
@@ -40,54 +42,54 @@ If ($useVersionNumber) {
 else
 {
     If (Test-Path -Path "$loc\$version" -PathType Leaf) {
-        Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Read VERSION"
+        Write-In-Color "Read VERSION"
         $verNumber = Get-Content -Path "$loc\$version"
-        Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "New version is $verNumber"
+        Write-In-Color Green "New version is $verNumber"
     }
 }
 
 if ($source) {
-    Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Project is provided"            
+    Write-In-Color "Project is provided"            
     $proj = "$loc\$source"
 }
 else { 
-    Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Finding out the project file"        
+    Write-In-Color "Finding out the project file"        
     $proj = Get-ChildItem -Path "$loc\*" -Include *.csproj
 }
 
-Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Project file is $proj"
+Write-In-Color "Project file is $proj"
 
 if ($proj) {
 
     if ($msbuild) {
-        Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Start to use nuget to build and pack ..."
+        Write-In-Color "Start to use nuget to build and pack ..."
         if ($verNumber) {
             if ($rebuild) {
-                Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Rebuild the project and override the version number with $verNumber"            
+                Write-In-Color "Rebuild the project and override the version number with $verNumber"            
                 & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols -Version $verNumber
             }
             else
             {
-                Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Just Override the version number with $verNumber"            
+                Write-In-Color "Just Override the version number with $verNumber"            
                 & nuget pack "$proj" -OutputDirectory nupkgs -Symbols -Version $verNumber
             }
         }
         else
         {
             if ($rebuild) {
-                Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Rebuild the project and then pack"                            
+                Write-In-Color "Rebuild the project and then pack"                            
                 & nuget pack "$proj" -Build -OutputDirectory nupkgs -Symbols
             }
             else
             {
-                Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Just rebuild the project"                                            
+                Write-In-Color "Just rebuild the project"                                            
                 & nuget pack "$proj" -OutputDirectory nupkgs -Symbols                
             }
         }
     }
     else
     {
-        Write-Host -ForegroundColor DarkBlue -BackgroundColor Green "Start to use dotnet to build and pack ..."
+        Write-In-Color "Start to use dotnet to build and pack ..."
         if ($rebuild) {
             & dotnet pack "$proj" --output nupkgs --include-source --include-symbols
         }
