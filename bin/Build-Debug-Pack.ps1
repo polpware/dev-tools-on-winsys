@@ -78,7 +78,7 @@ if ($proj) {
             {
                 if (ConfirmContinue "Just Override the version number with $verNumber")
                 {
-                    & nuget pack "$proj" -OutputDirectory nupkgs -Symbols -Version $verNumber
+                    & nuget pack "$proj" -OutputDirectory nupkgs -Symbols  -Version $verNumber
                 }
             }
         }
@@ -102,18 +102,37 @@ if ($proj) {
     else
     {
 
-        if ($rebuild) {
-            If (ConfirmContinue "Start to use dotnet to build and pack")
+        if ($verNumber) {
+            if ($rebuild) {
+                If (ConfirmContinue "Start to use dotnet to build and pack")
+                {
+                    & dotnet pack "$proj" --output nupkgs --include-source --include-symbols -p:PackageVersion=$verNumber
+                }
+            }
+            else
             {
-                & dotnet pack "$proj" --output nupkgs --include-source --include-symbols
+                If (ConfirmContinue "Start to use dotnet to pack (without rebuild)")
+                {
+                    & dotnet pack "$proj" --no-build --output nupkgs --include-source --include-symbols -p:PackageVersion=$verNumber
+                }
             }
         }
         else
         {
-            If (ConfirmContinue "Start to use dotnet to pack (without rebuild)")
-            {
-                & dotnet pack "$proj" --no-build --output nupkgs --include-source --include-symbols
+            if ($rebuild) {
+                If (ConfirmContinue "Start to use dotnet to build and pack")
+                {
+                    & dotnet pack "$proj" --output nupkgs --include-source --include-symbols
+                }
             }
+            else
+            {
+                If (ConfirmContinue "Start to use dotnet to pack (without rebuild)")
+                {
+                    & dotnet pack "$proj" --no-build --output nupkgs --include-source --include-symbols
+                }
+            }
+            
         }
     }
 }
