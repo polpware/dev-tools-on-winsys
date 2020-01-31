@@ -1,7 +1,9 @@
 <#
 
 .SYNOPSIS
-This is used to build a C# project.
+This is used to build a .NetCore or Asp .NetCore C# project.
+For traditional msbuild project, please use VS to build it and then 
+invoke the Build-Project-Pack to create a lib.
 
 .DESCRIPTION
 The script itself will build the project.
