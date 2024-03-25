@@ -1,57 +1,83 @@
-@echo off
+# Define variables (replace with your details)
+$SERVER_ADDRESS = "66.179.254.139"
+$USERNAME = "formlang.com_paa9dgf93ik"
+$PASSWORD = "vP95x_LgQ8"
+$SOURCE_DIRECTORY = "D:\FormLang_Apps\staging\formsubm\src\Nanshiie.FormSubmission.Web\bin\Release\net8.0\linux-x64"
+$DESTINATION_DIRECTORY = "staging-submission.formlang.com"
 
-rem Define variables (replace with your details)
-set SERVER_ADDRESS=your_server_address
-set USERNAME=your_username
-set PASSWORD=your_password
-set SOURCE_DIRECTORY=D:\FormLang_Apps\staging\formlang
-set DESTINATION_DIRECTORY=/remote/directory
+# Check for skip argument (optional)
+$SKIP_WWW = $false  # Assume not skipping by default
+if ($args[0] -eq "-skipwww") {
+    $SKIP_WWW = $true
+    $args = $args[1..($args.length - 1)] # Shift arguments
+}
 
-rem Check for skip argument (optional)
-set SKIP_WWW=
+# Function to upload a directory (updated)
+function Upload-Directory($localPath, $remotePath) {
+    Write-Host "Local path is $localPath"
+    Write-Host "Remote Path is $remotePath"
 
-:check_argument
-if "%~1%" EQU "-skipwww" (
-  set SKIP_WWW=true
-  shift /1
-  goto check_argument
-)
+    # Create an FTP session (simple, modify later for advanced options)
+    $session = New-Object System.Net.WebClient
+    $session.Credentials = New-Object System.Net.NetworkCredential($USERNAME, $PASSWORD)
+    $baseUri = "ftp://$SERVER_ADDRESS/$remotePath/"    
 
-! Enable passive mode (add "-p" flag for passive mode)
-ftp -p %SERVER_ADDRESS% <<!
+    # Get files and directories in the local directory
+    $items = Get-ChildItem $localPath
 
-USER %USERNAME%
-PASS %PASSWORD%
+    foreach ($item in $items) {
+        $uri = New-Object System.Uri($baseUri + $item.Name)
 
-! Turn off Interactive mode (prevents prompting)
-prompt off
+        if ($item.PSIsContainer) {  # It's a directory
+            # Try to create the directory on the server
+            Try {
+                $ftpRequest = [System.Net.WebRequest]::Create($uri)
+                $ftpRequest.Method = [System.Net.WebRequestMethods+FTP]::MakeDirectory
+                $ftpRequest.UsePassive = $true # Adjust for your server
+                $ftpRequest.Credentials = $session.Credentials
 
-! Change directory on server (replace with your destination path)
-CWD %DESTINATION_DIRECTORY%
+                $ftpResponse = $ftpRequest.GetResponse()
+                Write-Host "Directory created: $uri"
+            } Catch {
+                Write-Warning "Failed to create directory: $uri"
+            }
 
-! Change directory locally (replace with your source path)
-cd /d %SOURCE_DIRECTORY%
+            # Recursively upload the subdirectory
+            Upload-Directory $item.FullName ($remotePath + "/" + $item.Name)
+        } else {  # It's a file
+            $retryCount = 0
+            while ($retryCount -lt 3) {
+                try {
+                    Write-Host "Uploading $item to $uri"
+                    $session.UploadFile($uri, $item.FullName)
+                    break  # Exit loop on success
+                } catch {
+                    Write-Warning "Upload failed for $item. Attempt: $($retryCount + 1)"
+                    $retryCount++
+                    Start-Sleep -Seconds 2  # Wait before retry
+                }
+            }
+        }
+    }
+}
 
-! Loop through each file or directory (excluding www if SKIP_WWW is set)
-for /d %%f in ("%SOURCE_DIRECTORY%\*") do (
-  if "!SKIP_WWW!" EQU "" OR %%f NEQ "www" (
-    ftp -in <<END_SCRIPT
-        lcd %%f
-        cd %DESTINATION_DIRECTORY%\%%f
-        mput *.*
-        bye
-    END_SCRIPT
-  )
-)
+# Change local directory
+Set-Location $SOURCE_DIRECTORY
 
-! Close connection
-bye
+# Get subdirectories
+$directories = Get-ChildItem -Directory
 
-! Exit script
-exit
+# Optionally skip 'www'
+$directories = $directories | Where-Object { $_.Name -ne "wwwroot" -or !$SKIP_WWW }
 
-!>>
+foreach ($dir in $directories) {
+    Upload-Directory $dir.FullName $DESTINATION_DIRECTORY + $dir.Name
+}
 
-echo Transfer completed!
-
-pause
+# Error summary
+if ($errorLog -ne $null) {
+    Write-Host "Upload completed with errors:" -ForegroundColor Red
+    $errorLog
+} else {
+    Write-Host "Transfer completed successfully!"
+}
