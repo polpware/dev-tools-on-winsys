@@ -233,6 +233,13 @@ $projectPath = Get-Source-Directory $app
 $SOURCE_DIRECTORY = "$solutionPrefix\$app\$projectPath\bin\Release\net8.0\linux-x64"
 $DESTINATION_DIRECTORY = Get-Ftp-Destination-Directory $app $env
 
+# Print out information
+WriteInColor "Source is $SOURCE_DIRECTORY"
+WriteInColor "Target is $DESTINATION_DIRECTORY"
+WriteInColor "Server is $SERVER_ADDRESS"
+WriteInColor "66 is for staging and 74 for release"
+
+
 # Change local directory
 Set-Location $SOURCE_DIRECTORY
 
