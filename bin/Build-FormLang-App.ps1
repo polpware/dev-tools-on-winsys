@@ -1,7 +1,29 @@
-# New parameter for app 
-$app = $args[0]
-# new parameter for environment
-$env = $args[1]
+<#
+
+.SYNOPSIS
+This is used to build the Formlang App. 
+
+.DESCRIPTION
+The script itself will build a Formlang App based on the parameters. 
+
+.EXAMPLE
+Build-FormLang-App.ps1 -env staging -app formlang
+
+.NOTES
+-env is to specify the environment.
+-app is to specify the formlang app.
+
+.LINK
+http://polpware.com
+
+#>
+
+param (
+    [string]$app = "",
+    [string]$env = ""    
+)
+
+Import-Module -Name "$PSScriptRoot\PolpIOModule" -Verbose
 
 # Function to calculate directories based on environment
 function Get-Directories($app) {
@@ -58,6 +80,6 @@ Echo "Navigated to solution directory: $solutionFolder"
 
 # Execute the dotnet publish command with the provided profile
 Echo "Starting .NET project publish process..."
-dotnet publish .\$projectFolder\$projectFile -p:PublishProfile=.\$projectFolder\Properties\PublishProfile\$publishProfile
+dotnet publish .\$projectPath\$projectFile -p:PublishProfile=.\$projectPath\Properties\PublishProfile\$publishProfile
 
-Echo "Publish process complete!"
+WriteInColor "Publish process complete!"
