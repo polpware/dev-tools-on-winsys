@@ -1,16 +1,173 @@
-# Define variables (replace with your details)
-$SERVER_ADDRESS = "66.179.254.139"
-$USERNAME = "formlang.com_paa9dgf93ik"
-$PASSWORD = "vP95x_LgQ8"
-$SOURCE_DIRECTORY = "D:\FormLang_Apps\staging\formsubm\src\Nanshiie.FormSubmission.Web\bin\Release\net8.0\linux-x64"
-$DESTINATION_DIRECTORY = "staging-submission.formlang.com"
+<#
 
-# Check for skip argument (optional)
-$SKIP_WWW = $false  # Assume not skipping by default
-if ($args[0] -eq "-skipwww") {
-    $SKIP_WWW = $true
-    $args = $args[1..($args.length - 1)] # Shift arguments
+.SYNOPSIS
+This is used to deploy the Formlang App. 
+
+.DESCRIPTION
+The script itself will deploy a Formlang App based on the parameters. 
+
+.EXAMPLE
+Deploy-FormLang-App.ps1 -env staging -app formlang -skipwww true -dryrun false
+
+.NOTES
+-env is to specify the environment.
+-app is to specify the formlang app.
+-skipwww is to specify if the wwwroot is skipped.
+-dryrun is true
+
+.LINK
+http://polpware.com
+
+#>
+
+param (
+    [string]$app = "",
+    [string]$env = "",
+    [bool]$skipwww = $false,
+    [bool]$dryrun = $true
+)
+
+Import-Module -Name "$PSScriptRoot\PolpIOModule" -Verbose
+
+# Function to calculate directories based on the app
+function Get-Source-Directory($app) {
+    switch ($app) {
+        "formlang" {
+            return "src\Nanshiie.FormProcessor.Web"
+        }
+        "formportal" {
+            return "src\Nanshiie.FormPortal.HttpApi.Host"
+        }
+        "formsubm" {
+            return "src\Nanshiie.FormSubmission.Web"
+        }
+        "formwork" { 
+            return "src\Nanshiie.FormWorkflow.Web"
+        }
+        "formevents" {
+            return "src\Nanshiie.FormEvents.Web"
+        }
+        default {
+            Write-Error "Invalid environment. Valid options: formlang, formportal, formsubm, formevents"
+            exit 1 
+        }
+    }
 }
+
+function Get-Solution-Prefix($env) {
+    switch ($env) {
+        "staging" {
+            return "D:\FormLang_Apps\staging"
+        }
+        "release" {
+            return "D:\FormLang_Apps\release"
+        }
+        default {
+            Write-Error "Invalid environment. Valid options: staging, release"
+            exit 1 
+        }
+    }
+}
+
+function Get-Ftp-Destination-Directory($app, $env) {
+    switch ($app) {
+        "formlang" {
+            switch ($env) {
+                "staging" {
+                    return "staging.formlang.com"
+                }
+                "release" {
+                    return "next.formlang.com"
+                }
+                default {
+                    Write-Error "Invalid environment. Valid options: staging, release"
+                    exit 1 
+                }
+            }
+        }
+        "formportal" {
+            switch ($env) {
+                "staging" {
+                    return "staging-portal.formlang.com"
+                }
+                "release" {
+                    return "next-portal.formlang.com"
+                }
+                default {
+                    Write-Error "Invalid environment. Valid options: staging, release"
+                    exit 1 
+                }
+            }
+
+        }
+        "formsubm" {
+            switch ($env) {
+                "staging" {
+                    return "staging-submission.formlang.com"
+                }
+                "release" {
+                    return "next-submission.formlang.com"
+                }
+                default {
+                    Write-Error "Invalid environment. Valid options: staging, release"
+                    exit 1 
+                }
+            }
+
+        }
+        "formwork" { 
+            switch ($env) {
+                "staging" {
+                    return "staging-workflow.formlang.com"
+                }
+                "release" {
+                    return "next-workflow.formlang.com"
+                }
+                default {
+                    Write-Error "Invalid environment. Valid options: staging, release"
+                    exit 1 
+                }
+            }
+
+        }
+        "formevents" {
+            switch ($env) {
+                "staging" {
+                    return "staging-events.formlang.com"
+                }
+                "release" {
+                    return "next-events.formlang.com"
+                }
+                default {
+                    Write-Error "Invalid environment. Valid options: staging, release"
+                    exit 1 
+                }
+            }
+        }
+        default {
+            Write-Error "Invalid environment. Valid options: formlang, formportal, formsubm, formevents"
+            exit 1 
+        }
+    }
+}
+
+
+# function to get the server information
+function Get-Ftp-Server($env) {
+    switch ($env) {
+        "staging" {
+            return "66.179.254.139", "formlang.com_paa9dgf93ik", "vP95x_LgQ8"
+        }
+        "release" {
+            return "74.208.107.107", "formlang.com_lqhtl0fq1qi", "r#3%bCsdL24yRlnl"
+        }
+        default {
+            Write-Error "Invalid environment. Valid options: staging, release"
+            exit 1 
+        }
+    }
+}
+
 
 # Function to upload a directory (updated)
 function Upload-Directory($localPath, $remotePath) {
@@ -25,6 +182,11 @@ function Upload-Directory($localPath, $remotePath) {
     # Get files and directories in the local directory
     $items = Get-ChildItem $localPath
 
+    if ($dryrun) {
+       Write-Warning "Dry run"       
+       return
+    } 
+    
     foreach ($item in $items) {
         $uri = New-Object System.Uri($baseUri + $item.Name)
 
@@ -61,6 +223,16 @@ function Upload-Directory($localPath, $remotePath) {
     }
 }
 
+
+# Define variables (replace with your details)
+$SERVER_ADDRESS, $USERNAME, $PASSWORD = Get-Ftp-Server $env
+
+$solutionPrefix = Get-Solution-Prefix $env
+$projectPath = Get-Source-Directory $app
+
+$SOURCE_DIRECTORY = "$solutionPrefix\$app\$projectPath\bin\Release\net8.0\linux-x64"
+$DESTINATION_DIRECTORY = Get-Ftp-Destination-Directory $app $env
+
 # Change local directory
 Set-Location $SOURCE_DIRECTORY
 
@@ -68,7 +240,7 @@ Set-Location $SOURCE_DIRECTORY
 $directories = Get-ChildItem -Directory
 
 # Optionally skip 'www'
-$directories = $directories | Where-Object { $_.Name -ne "wwwroot" -or !$SKIP_WWW }
+$directories = $directories | Where-Object { $_.Name -ne "wwwroot" -or !$skipwww }
 
 foreach ($dir in $directories) {
     Upload-Directory $dir.FullName $DESTINATION_DIRECTORY + $dir.Name
@@ -79,5 +251,5 @@ if ($errorLog -ne $null) {
     Write-Host "Upload completed with errors:" -ForegroundColor Red
     $errorLog
 } else {
-    Write-Host "Transfer completed successfully!"
+    WriteInColor "Transfer completed successfully!"
 }
