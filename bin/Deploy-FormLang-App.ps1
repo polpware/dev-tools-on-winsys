@@ -183,7 +183,7 @@ function Upload-Directory($localPath, $remotePath) {
     $items = Get-ChildItem $localPath
 
     if ($dryrun) {
-       Write-Warning "Dry run"       
+       Write-Warning "Dry run $localPath to $remotePath"       
        return
     } 
     
@@ -230,7 +230,7 @@ $SERVER_ADDRESS, $USERNAME, $PASSWORD = Get-Ftp-Server $env
 $solutionPrefix = Get-Solution-Prefix $env
 $projectPath = Get-Source-Directory $app
 
-$SOURCE_DIRECTORY = "$solutionPrefix\$app\$projectPath\bin\Release\net8.0\linux-x64"
+$SOURCE_DIRECTORY = "$solutionPrefix\$app\$projectPath\bin\Release\net8.0\linux-x64\publish"
 $DESTINATION_DIRECTORY = Get-Ftp-Destination-Directory $app $env
 
 # Print out information
