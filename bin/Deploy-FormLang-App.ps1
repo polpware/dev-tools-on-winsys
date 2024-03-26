@@ -182,6 +182,8 @@ function Upload-Directory($localPath, $remotePath) {
     # Get files and directories in the local directory
     $items = Get-ChildItem $localPath
 
+    $items = $items | Where-Object { $_.Name -ne "wwwroot" -or !$skipwww }
+
     if ($dryrun) {
        Write-Warning "Dry run $localPath to $remotePath"       
        return
@@ -223,6 +225,8 @@ function Upload-Directory($localPath, $remotePath) {
     }
 }
 
+# Track start time
+$startTime = Get-Date 
 
 # Define variables (replace with your details)
 $SERVER_ADDRESS, $USERNAME, $PASSWORD = Get-Ftp-Server $env
@@ -239,19 +243,16 @@ WriteInColor "Target is $DESTINATION_DIRECTORY"
 WriteInColor "Server is $SERVER_ADDRESS"
 WriteInColor "66 is for staging and 74 for release"
 
+# Upload the root directory
+Upload-Directory $SOURCE_DIRECTORY $DESTINATION_DIRECTORY
 
-# Change local directory
-Set-Location $SOURCE_DIRECTORY
+# Track end time
+$endTime = Get-Date
 
-# Get subdirectories
-$directories = Get-ChildItem -Directory
+# Calculate time difference
+$timeSpent = $endTime - $startTime
 
-# Optionally skip 'www'
-$directories = $directories | Where-Object { $_.Name -ne "wwwroot" -or !$skipwww }
-
-foreach ($dir in $directories) {
-    Upload-Directory $dir.FullName $DESTINATION_DIRECTORY + $dir.Name
-}
+Write-Host "Upload process took: $($timeSpent.ToString())"
 
 # Error summary
 if ($errorLog -ne $null) {
