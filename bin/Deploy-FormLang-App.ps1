@@ -13,6 +13,8 @@ Deploy-FormLang-App.ps1 -env staging -app formlang -skipwww true -dryrun false
 -env is to specify the environment.
 -app is to specify the formlang app.
 -skipwww is to specify if the wwwroot is skipped.
+-skipDesign is to specify if the Design App is skipped.
+-skipportal is to specify if the Portal App is skipped.
 -dryrun is true
 
 .LINK
@@ -23,7 +25,9 @@ http://polpware.com
 param (
     [string]$app = "",
     [string]$env = "",
-    [bool]$skipwww = $false,
+    [bool]$skipwww = $true,
+    [bool]$skipPortal = $true,
+    [bool]$skipDesign = $true,
     [bool]$dryrun = $true
 )
 
@@ -174,6 +178,23 @@ function Upload-Directory($localPath, $remotePath) {
     Write-Host "Local path is $localPath"
     Write-Host "Remote Path is $remotePath"
 
+    if ($localPath.Contains("wwwroot\portal")) {
+        if ($skipPortal) {
+            Write-Host "Skipping $localPath"
+            return
+        }
+    } elseif ($localPath.Contains("wwwroot\design")) {
+        if ($skipDesign) {
+            Write-Host "Skipping $localPath"
+            return
+        }
+    }  elseif ($localPath.Contains("wwwroot\")) {
+        if ($skipwww) {
+            Write-Host "Skipping $localPath"
+            return
+        }
+    }
+
     # Create an FTP session (simple, modify later for advanced options)
     $session = New-Object System.Net.WebClient
     $session.Credentials = New-Object System.Net.NetworkCredential($USERNAME, $PASSWORD)
@@ -182,26 +203,25 @@ function Upload-Directory($localPath, $remotePath) {
     # Get files and directories in the local directory
     $items = Get-ChildItem $localPath
 
-    $items = $items | Where-Object { $_.Name -ne "wwwroot" -or !$skipwww }
-
-    if ($dryrun) {
-       Write-Warning "Dry run $localPath to $remotePath"       
-       return
-    } 
-    
     foreach ($item in $items) {
         $uri = New-Object System.Uri($baseUri + $item.Name)
 
         if ($item.PSIsContainer) {  # It's a directory
             # Try to create the directory on the server
             Try {
-                $ftpRequest = [System.Net.WebRequest]::Create($uri)
-                $ftpRequest.Method = [System.Net.WebRequestMethods+FTP]::MakeDirectory
-                $ftpRequest.UsePassive = $true # Adjust for your server
-                $ftpRequest.Credentials = $session.Credentials
 
-                $ftpResponse = $ftpRequest.GetResponse()
-                Write-Host "Directory created: $uri"
+                if ($dryrun) {
+                    Write-Warning "Dry run $localPath to $remotePath"       
+                } else { 
+    
+                   $ftpRequest = [System.Net.WebRequest]::Create($uri)
+                   $ftpRequest.Method = [System.Net.WebRequestMethods+FTP]::MakeDirectory
+                   $ftpRequest.UsePassive = $true # Adjust for your server
+                   $ftpRequest.Credentials = $session.Credentials
+
+                   $ftpResponse = $ftpRequest.GetResponse()
+                   Write-Host "Directory created: $uri"
+                }
             } Catch {
                 Write-Warning "Failed to create directory: $uri"
             }
@@ -209,6 +229,10 @@ function Upload-Directory($localPath, $remotePath) {
             # Recursively upload the subdirectory
             Upload-Directory $item.FullName ($remotePath + "/" + $item.Name)
         } else {  # It's a file
+            if ($dryrun) {
+                Write-Warning "Dry run $localPath to $remotePath"
+                return
+            } 
             $retryCount = 0
             while ($retryCount -lt 3) {
                 try {
