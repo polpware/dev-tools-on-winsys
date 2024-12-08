@@ -51,8 +51,14 @@ function Get-Source-Directory($app) {
         "formevents" {
             return "src\Nanshiie.FormEvents.Web"
         }
+        "formdrive" {
+            return "src\Nanshiie.FormDrive.Web"
+        }
+        "atlas" {
+            return "src\FormLang.AtlasService.Web"
+        }
         default {
-            Write-Error "Invalid environment. Valid options: formlang, formportal, formsubm, formevents"
+            Write-Error "Invalid environment. Valid options: formlang, formportal, formsubm, formevents, formdrive, atlas"
             exit 1 
         }
     }
@@ -148,8 +154,36 @@ function Get-Ftp-Destination-Directory($app, $env) {
                 }
             }
         }
+        "formdrive" {
+            switch ($env) {
+                "staging" {
+                    return "staging-drive.formlang.com"
+                }
+                "release" {
+                    return "next-drive.formlang.com"
+                }
+                default {
+                    Write-Error "Invalid environment. Valid options: staging, release"
+                    exit 1 
+                }
+            }
+        }
+        "atlas" {
+            switch ($env) {
+                "staging" {
+                    return "staging-atlas.formlang.com"
+                }
+                "release" {
+                    return "next-atlas.formlang.com"
+                }
+                default {
+                    Write-Error "Invalid environment. Valid options: staging, release"
+                    exit 1 
+                }
+            }
+        }
         default {
-            Write-Error "Invalid environment. Valid options: formlang, formportal, formsubm, formevents"
+            Write-Error "Invalid environment. Valid options: formlang, formportal, formsubm, formevents, formdrive, atlas"
             exit 1 
         }
     }

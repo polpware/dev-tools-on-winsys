@@ -43,8 +43,14 @@ function Get-Directories($app) {
         "formevents" {
             return "src\Nanshiie.FormEvents.Web", "Nanshiie.FormEvents.Web.csproj"
         }
+        "formdrive" {
+            return "src\Nanshiie.FormDrive.Web", "Nanshiie.FormDrive.Web.csproj"
+        }
+        "atlas" {
+            return "src\FormLang.AtlasService.Web", "FormLang.AtlasService.Web.csproj"
+        }
         default {
-            Write-Error "Invalid environment. Valid options: formlang, formportal, formsubm, formevents"
+            Write-Error "Invalid environment. Valid options: formlang, formportal, formsubm, formevents, formdrive, atlas"
             exit 1 
         }
     }
