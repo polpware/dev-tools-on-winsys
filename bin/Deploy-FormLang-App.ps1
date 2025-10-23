@@ -25,6 +25,7 @@ http://polpware.com
 param (
     [string]$app = "",
     [string]$env = "",
+    [string]$server = "",    
     [bool]$skipwww = $true,
     [bool]$skipPortal = $true,
     [bool]$skipDesign = $true,
@@ -191,16 +192,19 @@ function Get-Ftp-Destination-Directory($app, $env) {
 
 
 # function to get the server information
-function Get-Ftp-Server($env) {
-    switch ($env) {
+function Get-Ftp-Server($server) {
+    switch ($server) {
         "staging" {
             return "66.179.254.139", "formlang.com_paa9dgf93ik", "vP95x_LgQ8"
         }
-        "release" {
+        "release-1" {
             return "74.208.107.107", "formlang.com_lqhtl0fq1qi", "r#3%bCsdL24yRlnl"
         }
+        "release-2" {
+            return "209.46.122.181", "formlang.com_lqhtl0fq1qi", "r#3%bCsdL24yRlnl"
+        }
         default {
-            Write-Error "Invalid environment. Valid options: staging, release"
+            Write-Error "Invalid environment. Valid options: staging, release-1, release-2 "
             exit 1 
         }
     }
@@ -287,7 +291,7 @@ function Upload-Directory($localPath, $remotePath) {
 $startTime = Get-Date 
 
 # Define variables (replace with your details)
-$SERVER_ADDRESS, $USERNAME, $PASSWORD = Get-Ftp-Server $env
+$SERVER_ADDRESS, $USERNAME, $PASSWORD = Get-Ftp-Server $server
 
 $solutionPrefix = Get-Solution-Prefix $env
 $projectPath = Get-Source-Directory $app
