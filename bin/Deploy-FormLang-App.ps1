@@ -221,7 +221,7 @@ function Upload-Directory($localPath, $remotePath) {
             Write-Host "Skipping $localPath"
             return
         }
-    } elseif ($localPath.Contains("wwwroot\design")) {
+    } elseif ($localPath.Contains("wwwroot\studio")) {
         if ($skipDesign) {
             Write-Host "Skipping $localPath"
             return
