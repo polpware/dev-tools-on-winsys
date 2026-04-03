@@ -23,6 +23,10 @@
 # Set the target deployment environment (e.g., 'staging', 'production').
 $environment = "staging"
 
+# Set the release server when $environment is "release".
+# Valid values: "release-1", "release-2"
+$releaseServer = "release-1"
+
 # Set to $true to simulate the deployment without making actual changes.
 $dryRun = $false
 
@@ -86,8 +90,31 @@ $ErrorActionPreference = "Stop"
 # relative to this location.
 $scriptRoot = $PSScriptRoot
 
+function Get-DeployServer([string]$env, [string]$releaseServerName) {
+    switch ($env) {
+        "staging" {
+            return "staging"
+        }
+        "release" {
+            if ($releaseServerName -in @("release-1", "release-2")) {
+                return $releaseServerName
+            }
+
+            Write-Error "Invalid release server '$releaseServerName'. Valid options: release-1, release-2"
+            exit 1
+        }
+        default {
+            Write-Error "Invalid environment '$env'. Valid options: staging, release"
+            exit 1
+        }
+    }
+}
+
+$deployServer = Get-DeployServer -env $environment -releaseServerName $releaseServer
+
 Write-Host "Starting batch application deployment process..." -ForegroundColor Cyan
 Write-Host "Target Environment: $environment"
+Write-Host "Target Server: $deployServer"
 Write-Host "Dry Run Mode: $dryRun`n"
 
 # Loop through each application defined in the configuration.
@@ -122,7 +149,7 @@ foreach ($appConfig in $appConfigurations) {
         # Step 2: Deploy the application.
         Write-Host "Step 2: Deploying '$appName'..."
         # We assume the deploy script is inside the application folder.
-        Deploy-FormLang-App.ps1 -app $appName -env $environment -skipDesign $appConfig.SkipDesign -skipPortal $appConfig.SkipPortal -skipwww $appConfig.SkipWWW -dryrun $dryRun
+        Deploy-FormLang-App.ps1 -app $appName -env $environment -server $deployServer -skipDesign $appConfig.SkipDesign -skipPortal $appConfig.SkipPortal -skipwww $appConfig.SkipWWW -dryrun $dryRun
         Write-Host "Deployment for '$appName' completed successfully." -ForegroundColor Green
 
         Write-Host "`n"
