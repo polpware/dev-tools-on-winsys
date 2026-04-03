@@ -85,10 +85,10 @@ function Get-Ftp-Destination-Directory($app, $env) {
         "formlang" {
             switch ($env) {
                 "staging" {
-                    return "staging.formlang.com"
+                    return "staging.chorigen.com"
                 }
                 "release" {
-                    return "next.formlang.com"
+                    return "next.chorigen.com"
                 }
                 default {
                     Write-Error "Invalid environment. Valid options: staging, release"
@@ -99,10 +99,10 @@ function Get-Ftp-Destination-Directory($app, $env) {
         "formportal" {
             switch ($env) {
                 "staging" {
-                    return "staging-portal.formlang.com"
+                    return "staging-portal.chorigen.com"
                 }
                 "release" {
-                    return "next-portal.formlang.com"
+                    return "next-portal.chorigen.com"
                 }
                 default {
                     Write-Error "Invalid environment. Valid options: staging, release"
@@ -114,10 +114,10 @@ function Get-Ftp-Destination-Directory($app, $env) {
         "formsubm" {
             switch ($env) {
                 "staging" {
-                    return "staging-submission.formlang.com"
+                    return "staging-submission.chorigen.com"
                 }
                 "release" {
-                    return "next-submission.formlang.com"
+                    return "next-submission.chorigen.com"
                 }
                 default {
                     Write-Error "Invalid environment. Valid options: staging, release"
@@ -129,10 +129,10 @@ function Get-Ftp-Destination-Directory($app, $env) {
         "formwork" { 
             switch ($env) {
                 "staging" {
-                    return "staging-workflow.formlang.com"
+                    return "staging-workflow.chorigen.com"
                 }
                 "release" {
-                    return "next-workflow.formlang.com"
+                    return "next-workflow.chorigen.com"
                 }
                 default {
                     Write-Error "Invalid environment. Valid options: staging, release"
@@ -144,10 +144,10 @@ function Get-Ftp-Destination-Directory($app, $env) {
         "formevents" {
             switch ($env) {
                 "staging" {
-                    return "staging-events.formlang.com"
+                    return "staging-events.chorigen.com"
                 }
                 "release" {
-                    return "next-events.formlang.com"
+                    return "next-events.chorigen.com"
                 }
                 default {
                     Write-Error "Invalid environment. Valid options: staging, release"
@@ -158,10 +158,10 @@ function Get-Ftp-Destination-Directory($app, $env) {
         "formdrive" {
             switch ($env) {
                 "staging" {
-                    return "staging-drive.formlang.com"
+                    return "staging-drive.chorigen.com"
                 }
                 "release" {
-                    return "next-drive.formlang.com"
+                    return "next-drive.chorigen.com"
                 }
                 default {
                     Write-Error "Invalid environment. Valid options: staging, release"
@@ -172,10 +172,10 @@ function Get-Ftp-Destination-Directory($app, $env) {
         "atlas" {
             switch ($env) {
                 "staging" {
-                    return "staging-atlas.formlang.com"
+                    return "staging-atlas.chorigen.com"
                 }
                 "release" {
-                    return "next-atlas.formlang.com"
+                    return "next-atlas.chorigen.com"
                 }
                 default {
                     Write-Error "Invalid environment. Valid options: staging, release"
@@ -195,13 +195,13 @@ function Get-Ftp-Destination-Directory($app, $env) {
 function Get-Ftp-Server($server) {
     switch ($server) {
         "staging" {
-            return "66.179.254.139", "formlang.com_paa9dgf93ik", "vP95x_LgQ8"
+            return "66.179.254.139", "chorigen.com_x23b318mkc", "QpFVn&gg1@nu3gn9"
         }
         "release-1" {
-            return "74.208.107.107", "formlang.com_lqhtl0fq1qi", "r#3%bCsdL24yRlnl"
+            return "74.208.107.107", "chorigen.com_dci88rr8b7l", "Gzut0ohK$_9Jv0vj"
         }
         "release-2" {
-            return "209.46.122.181", "formlang.com_lqhtl0fq1qi", "r#3%bCsdL24yRlnl"
+            return "209.46.122.181", "chorigen.com_dci88rr8b7l", "Gzut0ohK$_9Jv0vj"
         }
         default {
             Write-Error "Invalid environment. Valid options: staging, release-1, release-2 "
