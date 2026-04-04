@@ -17,63 +17,53 @@
     - Updated to allow per-application deployment configurations.
 #>
 
+param (
+    [ValidateSet("staging", "release")]
+    [string]$environment = "staging",
+    [bool]$dryRun = $true
+)
+
 #--------------------------------------------------------------------------------
 # Configuration Section
 #--------------------------------------------------------------------------------
-# Set the target deployment environment (e.g., 'staging', 'production').
-$environment = "staging"
-
-# Set the release server when $environment is "release".
-# Valid values: "release-1", "release-2"
-$releaseServer = "release-1"
-
-# Set to $true to simulate the deployment without making actual changes.
-$dryRun = $false
-
 # Application-specific deployment configurations.
 # For each application, specify its name and the deployment steps to skip.
 $appConfigurations = @(
     [PSCustomObject]@{
         Name       = "atlas"
-        SkipDesign = $true
-        SkipPortal = $true
-        SkipWWW    = $true
+        SkipDesign = $false
+        SkipPortal = $false
+        SkipWWW    = $false
     },
     [PSCustomObject]@{
         Name       = "formdrive"
-        SkipDesign = $true
-        SkipPortal = $true
-        SkipWWW    = $true
+        SkipDesign = $false
+        SkipPortal = $false
+        SkipWWW    = $false
     },
     [PSCustomObject]@{
         Name       = "formevents"
-        SkipDesign = $true
-        SkipPortal = $true
-        SkipWWW    = $true
+        SkipDesign = $false
+        SkipPortal = $false
+        SkipWWW    = $false
     },
     [PSCustomObject]@{
         Name       = "formlang"
         SkipDesign = $false
         SkipPortal = $false
-        SkipWWW    = $true
+        SkipWWW    = $false
     },
     [PSCustomObject]@{
         Name       = "formportal"
-        SkipDesign = $true
-        SkipPortal = $true
-        SkipWWW    = $true
+        SkipDesign = $false
+        SkipPortal = $false
+        SkipWWW    = $false
     },
     [PSCustomObject]@{
         Name       = "formsubm"
-        SkipDesign = $true
-        SkipPortal = $true
-        SkipWWW    = $true
-    },
-    [PSCustomObject]@{
-        Name       = "formwork"
-        SkipDesign = $true
-        SkipPortal = $true
-        SkipWWW    = $true
+        SkipDesign = $false
+        SkipPortal = $false
+        SkipWWW    = $false
     }
 )
 
@@ -86,22 +76,21 @@ $appConfigurations = @(
 # to halt the entire process on failure.
 $ErrorActionPreference = "Stop"
 
-# Get the directory where this script is located. All application paths will be
-# relative to this location.
-$scriptRoot = $PSScriptRoot
+# Resolve app paths from the directory where the command is invoked.
+$scriptRoot = (Get-Location).Path
 
-function Get-DeployServer([string]$env, [string]$releaseServerName) {
+# In staging, all apps deploy to the single staging server.
+# In release, formdrive is assigned to release-2; all other apps to release-1.
+function Get-DeployServer([string]$env, [string]$appName) {
     switch ($env) {
         "staging" {
             return "staging"
         }
         "release" {
-            if ($releaseServerName -in @("release-1", "release-2")) {
-                return $releaseServerName
+            if ($appName -eq "formdrive") {
+                return "release-2"
             }
-
-            Write-Error "Invalid release server '$releaseServerName'. Valid options: release-1, release-2"
-            exit 1
+            return "release-1"
         }
         default {
             Write-Error "Invalid environment '$env'. Valid options: staging, release"
@@ -110,12 +99,10 @@ function Get-DeployServer([string]$env, [string]$releaseServerName) {
     }
 }
 
-$deployServer = Get-DeployServer -env $environment -releaseServerName $releaseServer
-
 Write-Host "Starting batch application deployment process..." -ForegroundColor Cyan
 Write-Host "Target Environment: $environment"
-Write-Host "Target Server: $deployServer"
 Write-Host "Dry Run Mode: $dryRun`n"
+Write-Host "Invocation Root: $scriptRoot"
 
 # Loop through each application defined in the configuration.
 foreach ($appConfig in $appConfigurations) {
@@ -127,7 +114,7 @@ foreach ($appConfig in $appConfigurations) {
         
         # Check if the application directory actually exists before proceeding.
         if (-not (Test-Path -Path $appPath -PathType Container)) {
-            Write-Error "Directory not found for application '$appName' at '$appPath'. Skipping."
+            Write-Warning "Directory not found for application '$appName' at '$appPath'. Skipping."
             # 'continue' skips to the next item in the foreach loop.
             continue
         }
@@ -140,17 +127,32 @@ foreach ($appConfig in $appConfigurations) {
         Write-Host "Deploying Application: $appName"
         Write-Host "------------------------------------------------------------" -ForegroundColor Yellow
 
+        $deployServer = Get-DeployServer -env $environment -appName $appName
+        $buildCommand = "Build-FormLang-App.ps1 -app $appName -env $environment"
+        $deployCommand = "Deploy-FormLang-App.ps1 -app $appName -env $environment -server $deployServer -skipDesign $($appConfig.SkipDesign) -skipPortal $($appConfig.SkipPortal) -skipwww $($appConfig.SkipWWW) -dryrun $dryRun"
+
         # Step 1: Build the application.
         Write-Host "Step 1: Building '$appName'..."
-        # We assume the build script is inside the application folder.
-        Build-FormLang-App.ps1 -app $appName -env $environment
-        Write-Host "Build for '$appName' completed successfully." -ForegroundColor Green
+        if ($dryRun) {
+            Write-Host "Dry run command: $buildCommand" -ForegroundColor Cyan
+        }
+        else {
+            # We assume the build script is inside the application folder.
+            Build-FormLang-App.ps1 -app $appName -env $environment
+            Write-Host "Build for '$appName' completed successfully." -ForegroundColor Green
+        }
 
         # Step 2: Deploy the application.
         Write-Host "Step 2: Deploying '$appName'..."
-        # We assume the deploy script is inside the application folder.
-        Deploy-FormLang-App.ps1 -app $appName -env $environment -server $deployServer -skipDesign $appConfig.SkipDesign -skipPortal $appConfig.SkipPortal -skipwww $appConfig.SkipWWW -dryrun $dryRun
-        Write-Host "Deployment for '$appName' completed successfully." -ForegroundColor Green
+        Write-Host "Target Server: $deployServer"
+        if ($dryRun) {
+            Write-Host "Dry run command: $deployCommand" -ForegroundColor Cyan
+        }
+        else {
+            # We assume the deploy script is inside the application folder.
+            Deploy-FormLang-App.ps1 -app $appName -env $environment -server $deployServer -skipDesign $appConfig.SkipDesign -skipPortal $appConfig.SkipPortal -skipwww $appConfig.SkipWWW -dryrun $dryRun
+            Write-Host "Deployment for '$appName' completed successfully." -ForegroundColor Green
+        }
 
         Write-Host "`n"
 

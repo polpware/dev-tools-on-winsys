@@ -58,16 +58,14 @@ Single app deployment examples
 
 3) Build-Deploy-All.ps1
 - Purpose: batch build and deploy multiple applications from one run.
-- Configuration is embedded at the top of the script:
-	- $environment controls staging/release build and destination naming
-	- $releaseServer controls production server when $environment is release (release-1 or release-2)
-	- $dryRun controls upload simulation
-	- $appConfigurations controls per-app skip flags
+- Inputs:
+	- -environment: staging | release
+	- -dryRun: $true | $false
 
 Current behavior:
 - This script now resolves and passes -server automatically:
 	- staging environment uses server staging
-	- release environment uses $releaseServer (release-1 or release-2)
+	- release environment uses release-2 for formdrive and release-1 for all other apps
 
 Recommended safe run sequence
 
@@ -82,12 +80,7 @@ Recommended safe run sequence
 
 Batch deployment examples
 - Dry run batch to staging:
-	- Set $environment = "staging"
-	- Set $dryRun = $true
-	- Run: .\Build-Deploy-All.ps1
+	- .\Build-Deploy-All.ps1 -environment staging -dryRun $true
 - Real batch to production server 1:
-	- Set $environment = "release"
-	- Set $releaseServer = "release-1"
-	- Set $dryRun = $false
-	- Run: .\Build-Deploy-All.ps1
+	- .\Build-Deploy-All.ps1 -environment release -dryRun $false
 
