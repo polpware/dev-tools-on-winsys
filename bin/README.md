@@ -1,11 +1,11 @@
-FormLang Deployment Tools (PowerShell)
+FormLang Build & Deployment Tools
 
-This folder contains scripts used to build and deploy FormLang applications to Linux FTP targets.
+This folder contains scripts and utilities for building, versioning, and deploying FormLang applications to Linux FTP targets.
 
 Updated deployment domain:
 - staging and release targets now use chorigen.com hostnames
 
-Scripts
+Deployment Scripts
 
 1) Build-FormLang-App.ps1
 - Purpose: publish one application with dotnet publish.
@@ -83,4 +83,92 @@ Batch deployment examples
 	- .\Build-Deploy-All.ps1 -environment staging -dryRun $true
 - Real batch to production server 1:
 	- .\Build-Deploy-All.ps1 -environment release -dryRun $false
+
+Development & Build Tools
+
+4) Build-Debug-Pack.ps1
+- Purpose: Build NuGet packages from a project (supports .NET Core and .NET Framework)
+- Parameters:
+	- -source: Path to .csproj file (auto-detected if omitted)
+	- -version: Path to VERSION file (default: "VERSION")
+	- -useVersionNumber: Override version (e.g., "2.2.0")
+	- -msbuild: Use nuget command instead of dotnet
+	- -rebuild: Skip building (default: $true)
+- Examples:
+	- .\Build-Debug-Pack.ps1
+	- .\Build-Debug-Pack.ps1 -source .\MyProject.csproj
+	- .\Build-Debug-Pack.ps1 -useVersionNumber 2.2.0
+	- .\Build-Debug-Pack.ps1 -msbuild -rebuild:$false
+- Output: Generates .nupkg and symbol packages in nupkgs directory
+
+5) Build-Project.ps1
+- Purpose: Build a .NET Core or ASP.NET Core C# project with version management
+- Parameters:
+	- -source: Path to .csproj file (auto-detected if omitted)
+	- -version: Path to VERSION file (default: "VERSION")
+	- -useVersionNumber: Override version (e.g., "2.2.0")
+- Examples:
+	- .\Build-Project.ps1 -source .\MyProject.csproj
+	- .\Build-Project.ps1 -version ..\..\VERSION
+	- .\Build-Project.ps1 -useVersionNumber 2.2.0
+
+6) Clean-Bin-Obj.ps1
+- Purpose: Recursively find and delete bin and obj directories
+- Parameters: None (interactive confirmation required)
+- Behavior:
+	- Searches current directory and one level deep
+	- Excludes: node_modules, wwwroot, .git
+	- Prompts for confirmation before deletion
+- Example:
+	- .\Clean-Bin-Obj.ps1
+
+7) Replace-Project-Version.ps1
+- Purpose: Update version number in a .csproj file from VERSION file
+- Parameters:
+	- -source: Path to .csproj file (auto-detected if omitted)
+	- -version: Path to VERSION file (default: "VERSION")
+- Examples:
+	- .\Replace-Project-Version.ps1
+	- .\Replace-Project-Version.ps1 -source .\MyProject.csproj -version ..\..\VERSION
+
+8) Set-AssemblyInfo-Version.ps1
+- Purpose: Update version in all AssemblyInfo.cs or AssemblyInfo.vb files recursively
+- Parameters:
+	- Version number as first argument (e.g., "2.8.3")
+- Example:
+	- .\Set-AssemblyInfo-Version.ps1 2.8.3
+- Behavior: Updates AssemblyVersion and AssemblyFileVersion attributes
+
+9) bump-version.sh
+- Purpose: Interactive semantic versioning with Git tag creation (Bash script)
+- Behavior:
+	- Reads current version from VERSION file
+	- Suggests minor version increment
+	- Pulls Git history and updates CHANGELOG.md
+	- Creates Git tag with new version
+	- Allows manual CHANGELOG.md editing before commit
+- Requirements: Git, Bash shell
+- Example:
+	- bash bump-version.sh
+
+Utilities & Dependencies
+
+PolpIOModule/
+- PowerShell module providing common helper functions
+- Functions:
+	- WriteInColor: Write colored console output
+	- ConfirmContinue: Interactive yes/no prompt
+- Imported by: Build-Debug-Pack.ps1, Build-Project.ps1, Build-FormLang-App.ps1, Deploy-FormLang-App.ps1
+
+ditaa0_9.jar
+- Diagram generation tool (converts ASCII art to PNG/SVG images)
+- Usage: java -jar ditaa0_9.jar input.txt output.png
+
+plantuml.jar
+- UML diagram generation tool (supports sequence, class, component diagrams, etc.)
+- Usage: java -jar plantuml.jar diagram.puml
+
+make.exe
+- GNU Make executable for Windows
+- Used for build automation with Makefile scripts
 
