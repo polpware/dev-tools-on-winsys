@@ -222,33 +222,43 @@ function Upload-Directory($localPath, $remotePath) {
     Write-Host "Local path is $localPath"
     Write-Host "Remote Path is $remotePath"
 
-    if ($localPath.Contains("wwwroot\portal")) {
+    # Normalize to compare paths consistently and reason about wwwroot-relative paths.
+    $normalizedLocalPath = $localPath.ToLowerInvariant()
+    $wwwrootMarker = "wwwroot\"
+    $wwwrootRelative = $null
+    $wwwrootIndex = $normalizedLocalPath.IndexOf($wwwrootMarker)
+    if ($wwwrootIndex -ge 0) {
+        $wwwrootRelative = $normalizedLocalPath.Substring($wwwrootIndex)
+    }
+
+    if ($wwwrootRelative -like "wwwroot\portal*") {
         if ($skipPortal) {
             Write-Host "Skipping $localPath"
             return
         }
-    } elseif ($localPath.Contains("wwwroot\studio")) {
+    } elseif ($wwwrootRelative -like "wwwroot\studio*") {
         if ($skipDesign) {
             Write-Host "Skipping $localPath"
             return
         }
-    } elseif ($localPath.Contains("wwwroot\territory\formlang")) {
+    } elseif ($wwwrootRelative -like "wwwroot\territory\formlang*") {
         if ($skipPwaAngularJs) {
             Write-Host "Skipping $localPath"
             return
         }
-    } elseif ($localPath.Contains("wwwroot\territory\css")) {
+    } elseif ($wwwrootRelative -like "wwwroot\territory\css*") {
         if ($skipPwaCss) {
             Write-Host "Skipping $localPath"
             return
         }
-    } elseif ($localPath.Contains("wwwroot\territory-dist")) {
+    } elseif ($wwwrootRelative -like "wwwroot\territory-dist*") {
         if ($skipPwaDist) {
             Write-Host "Skipping $localPath"
             return
         }
-    }  elseif ($localPath.Contains("wwwroot\")) {
-        if ($skipwww) {
+    }  elseif ($wwwrootRelative -ne $null) {
+        $isRequiredAncestor = ($wwwrootRelative -eq "wwwroot") -or ($wwwrootRelative -eq "wwwroot\territory")
+        if ($skipwww -and -not $isRequiredAncestor) {
             Write-Host "Skipping $localPath"
             return
         }
