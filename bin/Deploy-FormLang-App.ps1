@@ -32,9 +32,9 @@ param (
     [bool]$skipwww = $true,
     [bool]$skipPortal = $true,
     [bool]$skipDesign = $true,
-    [bool]$skipPwaAngularJs = $false,
-    [bool]$skipPwaCss = $false,
-    [bool]$skipPwaDist = $false,
+    [bool]$skipPwaAngularJs = $true,
+    [bool]$skipPwaCss = $true,
+    [bool]$skipPwaDist = $true,
     [bool]$dryrun = $true
 )
 
