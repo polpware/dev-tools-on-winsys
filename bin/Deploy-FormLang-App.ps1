@@ -15,7 +15,9 @@ Deploy-FormLang-App.ps1 -env staging -app formlang -skipwww true -dryrun false
 -skipwww is to specify if the wwwroot is skipped.
 -skipDesign is to specify if the Design App is skipped.
 -skipportal is to specify if the Portal App is skipped.
--skipAngularJs is to specify if the AngularJs App is skipped.
+-skipPwaAngularJs is to specify if wwwroot\territory\formlang is skipped.
+-skipPwaCss is to specify if wwwroot\territory\css is skipped.
+-skipPwaDist is to specify if wwwroot\territory-dist is skipped.
 -dryrun is true
 
 .LINK
@@ -30,7 +32,9 @@ param (
     [bool]$skipwww = $true,
     [bool]$skipPortal = $true,
     [bool]$skipDesign = $true,
-    [bool]$skipAngularJs = $false,
+    [bool]$skipPwaAngularJs = $false,
+    [bool]$skipPwaCss = $false,
+    [bool]$skipPwaDist = $false,
     [bool]$dryrun = $true
 )
 
@@ -228,8 +232,18 @@ function Upload-Directory($localPath, $remotePath) {
             Write-Host "Skipping $localPath"
             return
         }
-    } elseif ($localPath.Contains("wwwroot\territory-dist") -or $localPath.Contains("wwwroot\territory")) {
-        if ($skipAngularJs) {
+    } elseif ($localPath.Contains("wwwroot\territory\formlang")) {
+        if ($skipPwaAngularJs) {
+            Write-Host "Skipping $localPath"
+            return
+        }
+    } elseif ($localPath.Contains("wwwroot\territory\css")) {
+        if ($skipPwaCss) {
+            Write-Host "Skipping $localPath"
+            return
+        }
+    } elseif ($localPath.Contains("wwwroot\territory-dist")) {
+        if ($skipPwaDist) {
             Write-Host "Skipping $localPath"
             return
         }
