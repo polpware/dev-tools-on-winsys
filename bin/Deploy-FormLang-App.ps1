@@ -200,10 +200,10 @@ function Get-Ftp-Server($server) {
             return "66.179.254.139", "chorigen.com_x23b318mkc", "QpFVn&gg1@nu3gn9"
         }
         "release-1" {
-            return "74.208.107.107", "chorigen.com_dci88rr8b7l", "Gzut0ohK$_9Jv0vj"
+            return "74.208.107.107", "chorigen.com_dci88rr8b7l", "r#3%bCsdL24yRlnl"
         }
         "release-2" {
-            return "209.46.122.181", "chorigen.com_dci88rr8b7l", "Gzut0ohK$_9Jv0vj"
+            return "209.46.122.181", "chorigen.com_dci88rr8b7l", "r#3%bCsdL24yRlnl"
         }
         default {
             Write-Error "Invalid environment. Valid options: staging, release-1, release-2 "
