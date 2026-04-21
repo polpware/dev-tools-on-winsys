@@ -15,6 +15,7 @@ Deploy-FormLang-App.ps1 -env staging -app formlang -skipwww true -dryrun false
 -skipwww is to specify if the wwwroot is skipped.
 -skipDesign is to specify if the Design App is skipped.
 -skipportal is to specify if the Portal App is skipped.
+-skipAngularJs is to specify if the AngularJs App is skipped.
 -dryrun is true
 
 .LINK
@@ -29,6 +30,7 @@ param (
     [bool]$skipwww = $true,
     [bool]$skipPortal = $true,
     [bool]$skipDesign = $true,
+    [bool]$skipAngularJs = $false,
     [bool]$dryrun = $true
 )
 
@@ -223,6 +225,11 @@ function Upload-Directory($localPath, $remotePath) {
         }
     } elseif ($localPath.Contains("wwwroot\studio")) {
         if ($skipDesign) {
+            Write-Host "Skipping $localPath"
+            return
+        }
+    } elseif ($localPath.Contains("wwwroot\territory-dist") -or $localPath.Contains("wwwroot\territory")) {
+        if ($skipAngularJs) {
             Write-Host "Skipping $localPath"
             return
         }
